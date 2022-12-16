@@ -28,12 +28,12 @@ pub fn miller_rabin(value: BigUint, k: u32, rng: &mut ThreadRng) -> bool {
   let mut r: BigUint;
   let mut d: BigUint;
   let mut a: BigUint;
-  let x: BigUint;
-  let cont: bool = false;
+  let mut x: BigUint;
+  let mut cont: bool;
 
   if (value > create_biguint(3)) && (value.modpow(&BONE, &BTWO) != *BZERO) {
     r = (*BZERO).clone();
-    d = &value - ONE;
+    d = (&value) - ONE;
     loop {
       d /= TWO;
       r += ONE;
@@ -41,12 +41,38 @@ pub fn miller_rabin(value: BigUint, k: u32, rng: &mut ThreadRng) -> bool {
     }
 
     for _ in 0..k {
+      cont = false;
       loop {
         a = rng.gen_biguint(value.bits() / 8);
-        if !(a < *BTWO || a > (value - TWO)) { break; }
+        if !(a < *BTWO || a > ((&value) - TWO)) { break; }
       }
-    }
-  }
 
-  false
+      x = a.modpow(&d, &value);
+      if (x == *BONE) || (x == ((&value) - ONE)) {
+        continue;
+      }
+
+      for _i in num_iter::range_inclusive((*BZERO).clone(), &r - ONE) {
+        x = x.modpow(&BTWO, &value);
+        if x == ((&value) - ONE) {
+          cont = true;
+          break;
+        }
+      }
+
+      if cont {
+        continue;
+      }
+
+      return false;
+    }
+
+    return true;
+
+  } else if value <= *BZERO {
+    return false;
+
+  } else {  // 0 < value <= 3
+    return true;
+  }
 }
