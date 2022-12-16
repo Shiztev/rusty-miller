@@ -1,12 +1,14 @@
-use num::{BigUint, bigint::RandBigInt};
-use rand::rngs::ThreadRng;
-
 mod prime;
 
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
 extern crate num_iter;
+extern crate stopwatch;
+
+use num::{BigUint, bigint::RandBigInt};
+use rand::rngs::ThreadRng;
+use stopwatch::Stopwatch;
 
 /// Basic help statement.
 static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1>\n
@@ -16,6 +18,9 @@ static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1>\n
 
 /// Number of bits in a byte.
 static BYTE: u64 = 8;
+
+/// Milliseconds in a second.
+static MILLI_TO_S: i64 = 1000;
 
 fn main() {
   let args: Vec<String> = std::env::args().collect();
@@ -45,7 +50,25 @@ fn main() {
     panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
   }
 
-  let value: BigUint = rng.gen_biguint(bits / BYTE);
+  let mut value: BigUint;
+  let mut n: u64 = 1;
+  let mut curr_time: i64;
+  let mut prev_time: i64;
+  let sw: Stopwatch = Stopwatch::start_new();
 
-  println!("{}: is prime = {}", &value, prime::miller_rabin(value.clone(), k, &mut rng))
+
+  for _ in 0..count {
+    prev_time = sw.elapsed_ms();
+    loop {
+      value = rng.gen_biguint(bits);
+      if prime::miller_rabin(value.clone(), k, &mut rng) {
+        curr_time = sw.elapsed_ms();
+        //println!("{}: {}", n, value);
+        println!("[{}ms]\n{}: {}\n", curr_time - prev_time, n, value);
+        n += 1;
+        break;
+      }
+    }
+  }
+  println!("Net generation time: {:?}", sw.elapsed())
 }

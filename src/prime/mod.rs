@@ -20,13 +20,20 @@ fn create_biguint(i: u32) -> BigUint {
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
 pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
+  let bits: u64 = value.bits();
   let mut r: BigUint;
   let mut d: BigUint;
   let mut a: BigUint;
   let mut x: BigUint;
   let mut cont: bool;
 
-  if (value > create_biguint(3)) && (value.modpow(&BONE, &BTWO) != *BZERO) {
+  if value <= *BZERO {
+    return false;
+
+  } else if !(value > create_biguint(3)) {  // 0 < value <= 3
+    return true;
+
+  } else if value.modpow(&BONE, &BTWO) != *BZERO {  // implicitly value > create_biguint(3)
     r = (*BZERO).clone();
     d = (&value) - ONE;
     loop {
@@ -38,7 +45,7 @@ pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
     for _ in 0..k {
       cont = false;
       loop {
-        a = rng.gen_biguint(value.bits() / 8);
+        a = rng.gen_biguint(bits);
         if !(a < *BTWO || a > ((&value) - TWO)) { break; }
       }
 
@@ -63,10 +70,6 @@ pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
 
     return true;
 
-  } else if value <= *BZERO {
-    return false;
-
-  } else {  // 0 < value <= 3
-    return true;
   }
+  false
 }
