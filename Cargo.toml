@@ -6,5 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-num = { version = "0.4", features = ["rand"] }
+stopwatch = "0.0.7"
 rand = "0.8"
+num = { version = "0.4", features = ["rand"] }
+num-iter = "0.1"
+lazy_static = "1.4.0"
