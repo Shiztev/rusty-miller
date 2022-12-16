@@ -19,7 +19,7 @@ fn create_biguint(i: u32) -> BigUint {
 
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
-pub fn miller_rabin(value: BigUint, k: u32, rng: &mut ThreadRng) -> bool {
+pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
   let mut r: BigUint;
   let mut d: BigUint;
   let mut a: BigUint;
