@@ -65,11 +65,10 @@ pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
       if cont {
         continue;
       }
+
       return false;
     }
-
     return true;
-
   }
   false
 }

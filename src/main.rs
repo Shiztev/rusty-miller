@@ -11,7 +11,7 @@ use rand::rngs::ThreadRng;
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
-static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1>\n
+static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1> <k=10>\n
 \t- bits - the number of bits of the prime number, this must be a multiple of 8, and at least 32 bits.\n
 \t- count - the number of prime numbers to generate, defaults to 1\n
 \t- k - the number of rounds of the Miller-Rabin primarily test to perform, defaults to 10";
@@ -19,8 +19,6 @@ static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1>\n
 /// Number of bits in a byte.
 static BYTE: u64 = 8;
 
-/// Milliseconds in a second.
-static MILLI_TO_S: i64 = 1000;
 
 fn main() {
   let args: Vec<String> = std::env::args().collect();
