@@ -6,7 +6,7 @@ extern crate rand;
 extern crate num_iter;
 extern crate stopwatch;
 
-use std::time::Duration;
+use std::{time::Duration, thread, sync::{Arc, Mutex, mpsc}};
 
 use num::{BigUint, bigint::RandBigInt};
 use rand::rngs::ThreadRng;
@@ -74,21 +74,34 @@ fn main() {
 
 
 /// Generate primes via message passing.
-fn _gen_primes_msg_passing(k: u64, count: u64, bits: u64, mut rng: ThreadRng, sw: Stopwatch) {
-  let mut value: BigUint;
+fn _gen_primes(k: u64, count: u64, bits: u64, sw: Stopwatch) {
+  let rng: Arc<Mutex<ThreadRng>> = Arc::new(Mutex::new(rand::thread_rng()));
+  let (sender, receiver) = mpsc::channel();
+  let mut v: BigUint;
   let mut n: u64 = 1;
-  let mut curr_time: Duration;
-  let mut prev_time: Duration;
 
   // generate threads
+  let threads: Vec<_> = (0..500).map(|i| {  // TODO: Generate N threads
+    let r: Arc<Mutex<ThreadRng>> = Arc::clone(&rng);
+    let s = sender.clone();
 
-  // while needing more primes
+    thread::spawn(move || {
+      let mut value: BigUint;
+      loop {
+        value = r.lock().unwrap().gen_biguint(bits);  // TODO: handle error
+        if prime::miller_rabin(value, k, rng) {
+          s.send(value.clone()).unwrap();  // TODO: handle error
+        }
+      }
+    })
+  }).collect();
+
+  while n <= count { // while needing more primes
     // msg passing
+    v = receiver.recv().unwrap();
+    println!("{}: {}", n, v);
+    n += 1;
+  }
 
   // terminate all threads
-}
-
-/// Generate primes via mutex.
-fn _gen_primes_mutex(k: u64, count: u64, bits: u64, mut rng: ThreadRng, sw: Stopwatch) {
-
 }

@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use num::{BigUint, bigint::RandBigInt};
 use rand::rngs::ThreadRng;
 
@@ -19,7 +21,7 @@ fn create_biguint(i: u32) -> BigUint {
 
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
-pub fn miller_rabin(value: BigUint, k: u64, rng: &mut ThreadRng) -> bool {
+pub fn miller_rabin(value: BigUint, k: u64, rng: Arc<Mutex<ThreadRng>>) -> bool {
   let bits: u64 = value.bits();
   let mut r: BigUint;
   let mut d: BigUint;
