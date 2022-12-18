@@ -6,6 +6,8 @@ extern crate rand;
 extern crate num_iter;
 extern crate stopwatch;
 
+use std::time::Duration;
+
 use num::{BigUint, bigint::RandBigInt};
 use rand::rngs::ThreadRng;
 use stopwatch::Stopwatch;
@@ -50,23 +52,22 @@ fn main() {
 
   let mut value: BigUint;
   let mut n: u64 = 1;
-  let mut curr_time: i64;
-  let mut prev_time: i64;
+  let mut curr_time: Duration;
+  let mut prev_time: Duration;
   let sw: Stopwatch = Stopwatch::start_new();
 
 
   for _ in 0..count {
-    prev_time = sw.elapsed_ms();
+    prev_time = sw.elapsed();
     loop {
       value = rng.gen_biguint(bits);
       if prime::miller_rabin(value.clone(), k, &mut rng) {
-        curr_time = sw.elapsed_ms();
-        //println!("{}: {}", n, value);
-        println!("[{}ms]\n{}: {}\n", curr_time - prev_time, n, value);
+        curr_time = sw.elapsed() - prev_time;
+        println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, value);
         n += 1;
         break;
       }
     }
   }
-  println!("Net generation time: {:?}", sw.elapsed())
+  println!("Net generation time: {}s", sw.elapsed().as_secs_f64())
 }
