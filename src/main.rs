@@ -69,5 +69,26 @@ fn main() {
       }
     }
   }
-  println!("Net generation time: {}s", sw.elapsed().as_secs_f64())
+  println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
+}
+
+
+/// Generate primes via message passing.
+fn _gen_primes_msg_passing(k: u64, count: u64, bits: u64, mut rng: ThreadRng, sw: Stopwatch) {
+  let mut value: BigUint;
+  let mut n: u64 = 1;
+  let mut curr_time: Duration;
+  let mut prev_time: Duration;
+
+  // generate threads
+
+  // while needing more primes
+    // msg passing
+
+  // terminate all threads
+}
+
+/// Generate primes via mutex.
+fn _gen_primes_mutex(k: u64, count: u64, bits: u64, mut rng: ThreadRng, sw: Stopwatch) {
+
 }
