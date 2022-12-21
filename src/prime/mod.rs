@@ -21,7 +21,7 @@ fn create_biguint(i: u32) -> BigUint {
 
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
-pub fn miller_rabin(value: BigUint, k: u64, rng: Arc<Mutex<ThreadRng>>) -> bool {
+pub fn miller_rabin(value: BigUint, k: u64, rng: Arc<Mutex<rand::rngs::StdRng>>) -> bool {
   let bits: u64 = value.bits();
   let mut r: BigUint;
   let mut d: BigUint;
@@ -47,7 +47,7 @@ pub fn miller_rabin(value: BigUint, k: u64, rng: Arc<Mutex<ThreadRng>>) -> bool 
     for _ in 0..k {
       cont = false;
       loop {
-        a = rng.gen_biguint(bits);
+        a = rng.lock().unwrap().gen_biguint(bits);
         if !(a < *BTWO || a > ((&value) - TWO)) { break; }
       }
 
