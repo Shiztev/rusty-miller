@@ -9,7 +9,7 @@ extern crate stopwatch;
 use std::{time::Duration, thread, sync::{Arc, Mutex, mpsc}};
 
 use num::{BigUint, bigint::RandBigInt};
-use rand::rngs::ThreadRng;
+use rand::{rngs::ThreadRng, SeedableRng};
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
@@ -50,6 +50,7 @@ fn main() {
     panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
   }
 
+/*
   let mut value: BigUint;
   let mut n: u64 = 1;
   let mut curr_time: Duration;
@@ -70,26 +71,32 @@ fn main() {
     }
   }
   println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
+*/
+
+  gen_primes(k, count, bits);
 }
 
 
 /// Generate primes via message passing.
-fn _gen_primes(k: u64, count: u64, bits: u64, sw: Stopwatch) {
-  let rng: Arc<Mutex<ThreadRng>> = Arc::new(Mutex::new(rand::thread_rng()));
+fn gen_primes(k: u64, count: u64, bits: u64) {
+  let mut curr_time: Duration;
+  let mut prev_time: Duration;
+  let sw: Stopwatch = Stopwatch::start_new();
+  let rng: Arc<Mutex<rand::rngs::StdRng>> = Arc::new(Mutex::new(rand::rngs::StdRng::from_entropy()));
   let (sender, receiver) = mpsc::channel();
   let mut v: BigUint;
   let mut n: u64 = 1;
 
   // generate threads
   let threads: Vec<_> = (0..500).map(|i| {  // TODO: Generate N threads
-    let r: Arc<Mutex<ThreadRng>> = Arc::clone(&rng);
+    let r: Arc<Mutex<rand::rngs::StdRng>> = Arc::clone(&rng);
     let s = sender.clone();
 
     thread::spawn(move || {
       let mut value: BigUint;
       loop {
         value = r.lock().unwrap().gen_biguint(bits);  // TODO: handle error
-        if prime::miller_rabin(value, k, rng) {
+        if prime::miller_rabin(&value, k, &r) {
           s.send(value.clone()).unwrap();  // TODO: handle error
         }
       }
@@ -98,10 +105,13 @@ fn _gen_primes(k: u64, count: u64, bits: u64, sw: Stopwatch) {
 
   while n <= count { // while needing more primes
     // msg passing
+    prev_time = sw.elapsed();
     v = receiver.recv().unwrap();
-    println!("{}: {}", n, v);
+    curr_time = sw.elapsed() - prev_time;
+    println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, v);
     n += 1;
   }
+  println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
 
   // terminate all threads
 }
