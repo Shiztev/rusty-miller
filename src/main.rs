@@ -1,5 +1,5 @@
-mod prime;
-mod seq_mr;
+mod sequential_mr;
+mod concurrent_mr;
 
 #[macro_use]
 extern crate lazy_static;
@@ -76,7 +76,7 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
       let mut value: BigUint;
       loop {
         value = r.lock().unwrap().gen_biguint(bits);  // TODO: handle error
-        if prime::miller_rabin(&value, k, &r) {
+        if concurrent_mr::miller_rabin(&value, k, &r) {
           s.send(value.clone()).unwrap();  // TODO: handle error
         }
       }
@@ -111,7 +111,7 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
     prev_time = sw.elapsed();
     loop {
       value = rng.gen_biguint(bits);
-      if seq_mr::miller_rabin(&value.clone(), k, &mut rng) {
+      if sequential_mr::miller_rabin(&value.clone(), k, &mut rng) {
         curr_time = sw.elapsed() - prev_time;
         println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, value);
         n += 1;
