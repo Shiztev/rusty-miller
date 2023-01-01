@@ -1,4 +1,5 @@
 mod prime;
+mod seq_mr;
 
 #[macro_use]
 extern crate lazy_static;
@@ -50,38 +51,17 @@ fn main() {
     panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
   }
 
-/*
-  let mut value: BigUint;
-  let mut n: u64 = 1;
-  let mut curr_time: Duration;
-  let mut prev_time: Duration;
-  let sw: Stopwatch = Stopwatch::start_new();
-
-
-  for _ in 0..count {
-    prev_time = sw.elapsed();
-    loop {
-      value = rng.gen_biguint(bits);
-      if prime::miller_rabin(value.clone(), k, &mut rng) {
-        curr_time = sw.elapsed() - prev_time;
-        println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, value);
-        n += 1;
-        break;
-      }
-    }
-  }
-  println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
-*/
-
   gen_primes(k, count, bits);
+  //threaded_gen_primes(k, count, bits);
 }
 
 
-/// Generate primes via message passing.
-fn gen_primes(k: u64, count: u64, bits: u64) {
+/// Generate primes concurrently.
+fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
   let mut curr_time: Duration;
   let mut prev_time: Duration;
   let sw: Stopwatch = Stopwatch::start_new();
+  // TODO: PROBLEM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< StdRng is SUPER SLOWWWWWWWWWWWW
   let rng: Arc<Mutex<rand::rngs::StdRng>> = Arc::new(Mutex::new(rand::rngs::StdRng::from_entropy()));
   let (sender, receiver) = mpsc::channel();
   let mut v: BigUint;
@@ -103,7 +83,7 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
     });
   }
 
-  while n <= count { // while needing more primes
+  while n <= count {  // while needing more primes
     // msg passing
     prev_time = sw.elapsed();
     v = receiver.recv().unwrap();
@@ -114,4 +94,30 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
   println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
 
   // terminate all threads
+}
+
+
+/// Generate primes sequentially.
+fn gen_primes(k: u64, count: u64, bits: u64) {
+  let mut rng: ThreadRng = rand::thread_rng();
+  let mut value: BigUint;
+  let mut n: u64 = 1;
+  let mut curr_time: Duration;
+  let mut prev_time: Duration;
+  let sw: Stopwatch = Stopwatch::start_new();
+
+
+  for _ in 0..count {
+    prev_time = sw.elapsed();
+    loop {
+      value = rng.gen_biguint(bits);
+      if seq_mr::miller_rabin(&value.clone(), k, &mut rng) {
+        curr_time = sw.elapsed() - prev_time;
+        println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, value);
+        n += 1;
+        break;
+      }
+    }
+  }
+  println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
 }

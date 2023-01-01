@@ -1,7 +1,5 @@
-use std::sync::{Arc, Mutex};
-
 use num::{BigUint, bigint::RandBigInt};
-use rand::rngs::StdRng;
+use rand::rngs::ThreadRng;
 
 lazy_static!(
   pub static ref BZERO: BigUint = create_biguint(0);
@@ -21,7 +19,7 @@ fn create_biguint(i: u32) -> BigUint {
 
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
-pub fn miller_rabin(value: &BigUint, k: u64, rng: &Arc<Mutex<rand::rngs::StdRng>>) -> bool {
+pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
   let bits: u64 = value.bits();
   let mut r: BigUint;
   let mut d: BigUint;
@@ -47,7 +45,7 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &Arc<Mutex<rand::rngs::StdRng>
     for _ in 0..k {
       cont = false;
       loop {
-        a = rng.lock().unwrap().gen_biguint(bits);
+        a = rng.gen_biguint(bits);
         if !(a < *BTWO || a > ((value) - TWO)) { break; }
       }
 
