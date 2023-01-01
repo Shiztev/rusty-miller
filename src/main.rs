@@ -6,7 +6,7 @@ extern crate rand;
 extern crate num_iter;
 extern crate stopwatch;
 
-use std::{time::Duration, thread, sync::{Arc, Mutex, mpsc}};
+use std::{time::Duration, thread, sync::{Arc, Mutex, mpsc::{self, Sender}}};
 
 use num::{BigUint, bigint::RandBigInt};
 use rand::{rngs::ThreadRng, SeedableRng};
@@ -88,7 +88,7 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
   let mut n: u64 = 1;
 
   // generate threads
-  let threads: Vec<_> = (0..500).map(|i| {  // TODO: Generate N threads
+  for _ in 0..20 {
     let r: Arc<Mutex<rand::rngs::StdRng>> = Arc::clone(&rng);
     let s = sender.clone();
 
@@ -100,8 +100,8 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
           s.send(value.clone()).unwrap();  // TODO: handle error
         }
       }
-    })
-  }).collect();
+    });
+  }
 
   while n <= count { // while needing more primes
     // msg passing
