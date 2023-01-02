@@ -1,5 +1,4 @@
-mod sequential_mr;
-mod concurrent_mr;
+mod prime;
 
 #[macro_use]
 extern crate lazy_static;
@@ -7,10 +6,10 @@ extern crate rand;
 extern crate num_iter;
 extern crate stopwatch;
 
-use std::{time::Duration, thread, sync::{Arc, Mutex, mpsc::{self, Sender}}};
+use std::{time::Duration, thread, sync::{mpsc::{self, Sender}}};
 
 use num::{BigUint, bigint::RandBigInt};
-use rand::{rngs::ThreadRng, SeedableRng};
+use rand::{rngs::ThreadRng};
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
@@ -51,8 +50,8 @@ fn main() {
     panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
   }
 
-  gen_primes(k, count, bits);
-  //threaded_gen_primes(k, count, bits);
+  //gen_primes(k, count, bits);
+  threaded_gen_primes(k, count, bits);
 }
 
 
@@ -61,22 +60,20 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
   let mut curr_time: Duration;
   let mut prev_time: Duration;
   let sw: Stopwatch = Stopwatch::start_new();
-  // TODO: PROBLEM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< StdRng is SUPER SLOWWWWWWWWWWWW
-  let rng: Arc<Mutex<rand::rngs::StdRng>> = Arc::new(Mutex::new(rand::rngs::StdRng::from_entropy()));
   let (sender, receiver) = mpsc::channel();
   let mut v: BigUint;
   let mut n: u64 = 1;
 
   // generate threads
   for _ in 0..20 {
-    let r: Arc<Mutex<rand::rngs::StdRng>> = Arc::clone(&rng);
     let s = sender.clone();
 
     thread::spawn(move || {
       let mut value: BigUint;
+      let mut r: ThreadRng = rand::thread_rng();
       loop {
-        value = r.lock().unwrap().gen_biguint(bits);  // TODO: handle error
-        if concurrent_mr::miller_rabin(&value, k, &r) {
+        value = r.gen_biguint(bits);  // TODO: handle error
+        if prime::miller_rabin(&value, k, &mut r) {
           s.send(value.clone()).unwrap();  // TODO: handle error
         }
       }
@@ -111,7 +108,7 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
     prev_time = sw.elapsed();
     loop {
       value = rng.gen_biguint(bits);
-      if sequential_mr::miller_rabin(&value.clone(), k, &mut rng) {
+      if prime::miller_rabin(&value.clone(), k, &mut rng) {
         curr_time = sw.elapsed() - prev_time;
         println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, value);
         n += 1;

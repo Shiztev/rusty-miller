@@ -1,27 +1,19 @@
-use std::sync::{Arc, Mutex};
-
-use num::{BigUint, bigint::RandBigInt};
-use rand::rngs::StdRng;
+use num::{BigUint, bigint::RandBigInt, Integer};
+use rand::rngs::ThreadRng;
 
 lazy_static!(
-  pub static ref BZERO: BigUint = create_biguint(0);
-  pub static ref BONE: BigUint = create_biguint(1);
-  pub static ref BTWO: BigUint = create_biguint(2);
+  pub static ref BZERO: BigUint = BigUint::from(0 as u32);
+  pub static ref BONE: BigUint = BigUint::from(1 as u32);
+  pub static ref BTWO: BigUint = BigUint::from(2 as u32);
+  pub static ref BTHREE: BigUint = BigUint::from(3 as u32);
 );
 pub static ONE: u32 = 1;
 pub static TWO: u32 = 2;
 
 
-
-/// Create a BigUint from the provided i32.
-fn create_biguint(i: u32) -> BigUint {
-  BigUint::from(i)
-}
-
-
 /// Calculates if provided number is probabilistically prime
 /// using the Miller-Rabin primality test.
-pub fn miller_rabin(value: &BigUint, k: u64, rng: &Arc<Mutex<rand::rngs::StdRng>>) -> bool {
+pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
   let bits: u64 = value.bits();
   let mut r: BigUint;
   let mut d: BigUint;
@@ -29,25 +21,20 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &Arc<Mutex<rand::rngs::StdRng>
   let mut x: BigUint;
   let mut cont: bool;
 
-  if *value <= *BZERO {
-    return false;
 
-  } else if !(*value > create_biguint(3)) {  // 0 < value <= 3
-    return true;
-
-  } else if value.modpow(&BONE, &BTWO) != *BZERO {  // implicitly value > create_biguint(3)
+  if *value > *BTHREE && !value.is_even() {
     r = (*BZERO).clone();
     d = (value) - ONE;
     loop {
       d /= TWO;
       r += ONE;
-      if d.modpow(&BONE, &BTWO) != *BZERO { break; }
+      if !value.is_even() { break; }
     }
 
     for _ in 0..k {
       cont = false;
       loop {
-        a = rng.lock().unwrap().gen_biguint(bits);
+        a = rng.gen_biguint(bits);
         if !(a < *BTWO || a > ((value) - TWO)) { break; }
       }
 
@@ -71,6 +58,11 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &Arc<Mutex<rand::rngs::StdRng>
       return false;
     }
     return true;
+
+  } else if *value == *BONE || *value == *BTWO || *value == *BTHREE {
+    return true;
+
+  } else {
+    return false;
   }
-  false
 }
