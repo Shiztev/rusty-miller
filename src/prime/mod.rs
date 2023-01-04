@@ -1,5 +1,5 @@
 use num::{BigUint, bigint::RandBigInt, Integer};
-use rand::rngs::ThreadRng;
+use rand::{rngs::ThreadRng};
 
 lazy_static!(
   pub static ref BZERO: BigUint = BigUint::from(0 as u32);

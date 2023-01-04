@@ -24,19 +24,27 @@ static BYTE: u64 = 8;
 
 fn main() {
   let args: Vec<String> = std::env::args().collect();
-  let mut rng: ThreadRng = rand::thread_rng();
   let mut count: u64 = 1;
   let mut k: u64 = 10;
   let bits: u64;
+  let run_type: char;
   let l: usize = args.len();
 
   match l {
-    4 | 3 | 2 => {
-      if l == 4 {
-        k = str::parse::<u64>(&args[3]).expect(&format!("k is not an unsigned number!\n{}", HELP));
+    5 | 4 | 3 | 2 => {
+      if l >= 5 {
+        k = str::parse::<u64>(&args[4]).expect(&format!("k is not an unsigned number!\n{}", HELP));
       }
-      if l == 3 {
-        count = str::parse::<u64>(&args[2]).expect(&format!("Count is not an unsigned number!\n{}", HELP));
+      if l >= 4 {
+        count = str::parse::<u64>(&args[3]).expect(&format!("Count is not an unsigned number!\n{}", HELP));
+      }
+      if l >= 3 {
+        match args[2] {
+          "s" => {}
+          "p" => {}
+          "r" => {}
+          _ => {}
+        }
       }
       bits = str::parse::<u64>(&args[1]).expect(&format!("Bit length is not an unsigned number!\n{}", HELP));
     },
@@ -50,7 +58,13 @@ fn main() {
     panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
   }
 
-  //gen_primes(k, count, bits);
+  if count < 1 {
+    panic!("count must be greater than 0!");
+  }
+
+  println!("SEQUENTIAL");
+  gen_primes(k, count, bits);
+  println!("PARALLEL");
   threaded_gen_primes(k, count, bits);
 }
 
