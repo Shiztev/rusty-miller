@@ -33,7 +33,7 @@ fn main() {
   let mut p: bool = false;
   let s_check = "s";
   let p_check = "p";
-  let b_check = "r";
+  let b_check = "b";
 
   match l {
     5 | 4 | 3 | 2 => {
@@ -44,7 +44,7 @@ fn main() {
         count = str::parse::<u64>(&args[3]).expect(&format!("Count is not an unsigned number!\n{}", HELP));
       }
       if l >= 3 {
-        let b = args[2] == s_check;
+        let b = args[2] == b_check;
         s = (args[2] == s_check) || b;
         p = (args[2] == p_check) || b;
         if !s && !p {
@@ -81,16 +81,15 @@ fn main() {
 
 /// Generate primes concurrently.
 fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
-  let mut curr_time: Duration;
-  let mut prev_time: Duration;
+
   let sw: Stopwatch = Stopwatch::start_new();
   let (sender, receiver) = mpsc::channel();
-  let mut v: BigUint;
-  let mut n: u64 = 1;
+  let gen_count: Arc<Mutex<u64>> = Arc::new(Mutex::new(0));
 
   // generate threads
   for _ in 0..20 {
     let s = sender.clone();
+    let c = Arc::clone(&gen_count);
 
     thread::spawn(move || {
       let mut value: BigUint;
@@ -98,20 +97,24 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
       loop {
         value = r.gen_biguint(bits);  // TODO: handle error
         if prime::miller_rabin(&value, k, &mut r) {
-          s.send(value.clone()).unwrap();  // TODO: handle error
+          {
+            let mut curr_count = c.lock().unwrap();
+            if *curr_count < count {
+              println!("{}", value);
+              *curr_count += 1;
+            }
+
+            if *curr_count == count {
+              s.send(true).unwrap();
+            }
+          }
+          //s.send(value.clone()).unwrap();  // TODO: handle error
         }
       }
     });
   }
 
-  while n <= count {  // while needing more primes
-    // msg passing
-    prev_time = sw.elapsed();
-    v = receiver.recv().unwrap();
-    curr_time = sw.elapsed() - prev_time;
-    println!("[{}ms]\n{}: {}\n", curr_time.as_millis(), n, v);
-    n += 1;
-  }
+  receiver.recv().unwrap();
   println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
 
   // terminate all threads
