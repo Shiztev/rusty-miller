@@ -6,14 +6,15 @@ extern crate rand;
 extern crate num_iter;
 extern crate stopwatch;
 
-use std::{time::Duration, thread, sync::{mpsc::{self, Sender}}};
+use std::{time::Duration, thread, sync::{mpsc::{self, Sender}, Arc, Mutex}};
 
 use num::{BigUint, bigint::RandBigInt};
 use rand::{rngs::ThreadRng};
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
-static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1> <k=10>\n
+static HELP: &str = "[rusty-miller/cargo run] <run-type> <bits> <count=1> <k=10>\n
+\t- run-type - determines if program run sequentially (s), in parallel (p), or both (b)
 \t- bits - the number of bits of the prime number, this must be a multiple of 8, and at least 32 bits.\n
 \t- count - the number of prime numbers to generate, defaults to 1\n
 \t- k - the number of rounds of the Miller-Rabin primarily test to perform, defaults to 10";
@@ -27,8 +28,12 @@ fn main() {
   let mut count: u64 = 1;
   let mut k: u64 = 10;
   let bits: u64;
-  let run_type: char;
   let l: usize = args.len();
+  let mut s: bool = false;
+  let mut p: bool = false;
+  let s_check = "s";
+  let p_check = "p";
+  let b_check = "r";
 
   match l {
     5 | 4 | 3 | 2 => {
@@ -39,11 +44,11 @@ fn main() {
         count = str::parse::<u64>(&args[3]).expect(&format!("Count is not an unsigned number!\n{}", HELP));
       }
       if l >= 3 {
-        match args[2] {
-          "s" => {}
-          "p" => {}
-          "r" => {}
-          _ => {}
+        let b = args[2] == s_check;
+        s = (args[2] == s_check) || b;
+        p = (args[2] == p_check) || b;
+        if !s && !p {
+          panic!("run-type is not valid, please specify sequential (s), parallel (p), or both (b)");
         }
       }
       bits = str::parse::<u64>(&args[1]).expect(&format!("Bit length is not an unsigned number!\n{}", HELP));
@@ -62,10 +67,15 @@ fn main() {
     panic!("count must be greater than 0!");
   }
 
-  println!("SEQUENTIAL");
-  gen_primes(k, count, bits);
-  println!("PARALLEL");
-  threaded_gen_primes(k, count, bits);
+  if p {
+    println!("PARALLEL");
+    threaded_gen_primes(k, count, bits);
+  }
+
+  if s {
+    println!("SEQUENTIAL");
+    gen_primes(k, count, bits);
+  }
 }
 
 
