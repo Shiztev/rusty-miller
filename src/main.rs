@@ -33,7 +33,7 @@ fn main() {
   let mut p: bool = false;
   let s_check = "s";
   let p_check = "p";
-  let b_check = "r";
+  let b_check = "b";
 
   match l {
     5 | 4 | 3 | 2 => {
@@ -44,7 +44,7 @@ fn main() {
         count = str::parse::<u64>(&args[3]).expect(&format!("Count is not an unsigned number!\n{}", HELP));
       }
       if l >= 3 {
-        let b = args[2] == s_check;
+        let b = args[2] == b_check;
         s = (args[2] == s_check) || b;
         p = (args[2] == p_check) || b;
         if !s && !p {
