@@ -8,6 +8,8 @@ extern crate stopwatch;
 
 use std::{time::Duration, thread, sync::{mpsc::{self, Sender}, Arc, Mutex}};
 
+use tracing::{event, span, Level};
+
 use num::{BigUint, bigint::RandBigInt};
 use rand::{rngs::ThreadRng};
 use stopwatch::Stopwatch;
@@ -80,7 +82,7 @@ fn main() {
 
 
 /// Generate primes concurrently.
-fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
+pub fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
 
   let sw: Stopwatch = Stopwatch::start_new();
   let (sender, receiver) = mpsc::channel();
@@ -94,9 +96,13 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
     thread::spawn(move || {
       let mut value: BigUint;
       let mut r: ThreadRng = rand::thread_rng();
+      let span = span!(Level::TRACE, "generating prime");
+      let _guard = span.enter();
+
       loop {
         value = r.gen_biguint(bits);  // TODO: handle error
         if prime::miller_rabin(&value, k, &mut r) {
+          event!(Level::TRACE, "found a prime");
           {
             let mut curr_count = c.lock().unwrap();
             if *curr_count < count {
@@ -144,4 +150,23 @@ fn gen_primes(k: u64, count: u64, bits: u64) {
     }
   }
   println!("Net generation time: {}s", sw.elapsed().as_secs_f64());
+}
+
+#[cfg(test)]
+mod parallel_tests {
+  use crate::threaded_gen_primes;
+  use tracing::Level;
+use tracing_subscriber::FmtSubscriber;
+
+  #[test]
+  pub fn the_test() {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    let k = 10;
+    let count = 3;
+    let bits = 1000;
+    threaded_gen_primes(k, count, bits);
+  }
 }
