@@ -13,10 +13,10 @@ use rand::{rngs::ThreadRng};
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
-static HELP: &str = "[rusty-miller/cargo run] <run-type> <bits> <count=1> <k=10>\n
-\t- run-type - determines if program run sequentially (s), in parallel (p), or both (b)
+static HELP: &str = "[rusty-miller/cargo run] <bits> <count=1> <run-type> <k=10>\n
 \t- bits - the number of bits of the prime number, this must be a multiple of 8, and at least 32 bits.\n
 \t- count - the number of prime numbers to generate, defaults to 1\n
+\t- run-type - determines if program run sequentially (s), in parallel (p), or both (b)
 \t- k - the number of rounds of the Miller-Rabin primarily test to perform, defaults to 10";
 
 /// Number of bits in a byte.
@@ -48,23 +48,27 @@ fn main() {
         s = (args[2] == s_check) || b;
         p = (args[2] == p_check) || b;
         if !s && !p {
-          panic!("run-type is not valid, please specify sequential (s), parallel (p), or both (b)");
+          println!("run-type is not valid, please specify sequential (s), parallel (p), or both (b)");
+          return;;
         }
       }
       bits = str::parse::<u64>(&args[1]).expect(&format!("Bit length is not an unsigned number!\n{}", HELP));
     },
 
     _ => {
-      panic!("{HELP}");
+      println!("{HELP}");
+      return;
     }
   }
 
   if (bits % BYTE) != 0 {
-    panic!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
+    println!("bit length of {} is not divisible by 8!\n{}", bits, HELP);
+    return;
   }
 
   if count < 1 {
-    panic!("count must be greater than 0!");
+    println!("count must be greater than 0!");
+    return;
   }
 
   if p {
