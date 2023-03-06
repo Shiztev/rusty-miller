@@ -36,7 +36,9 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
     }
 
     for _ in 0..k {
+      let x_check = (value) - ONE;
       cont = false;
+
       loop {
         event!(Level::TRACE, "calculating a");
         a = rng.gen_biguint(bits);
@@ -44,14 +46,14 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
       }
 
       x = a.modpow(&d, &value);
-      if (x == *BONE) || (x == ((value) - ONE)) {
+      if (x == *BONE) || (x == (x_check)) {
         continue;
       }
 
       event!(Level::TRACE, "calculating x");
       for _i in num_iter::range_inclusive((*BZERO).clone(), &r - ONE) {
         x = x.modpow(&BTWO, value);
-        if x == ((value) - ONE) {
+        if x == (x_check) {
           cont = true;
           break;
         }
