@@ -1,4 +1,5 @@
 mod prime;
+mod primelist;
 
 #[macro_use]
 extern crate lazy_static;
@@ -9,7 +10,7 @@ extern crate stopwatch;
 use std::{time::Duration, thread, sync::{mpsc::{self, Sender}, Arc, Mutex}};
 
 use num::{BigUint, bigint::RandBigInt};
-use rand::{rngs::ThreadRng};
+use rand::rngs::ThreadRng;
 use stopwatch::Stopwatch;
 
 /// Basic help statement.
@@ -49,7 +50,7 @@ fn main() {
         p = (args[2] == p_check) || b;
         if !s && !p {
           println!("run-type is not valid, please specify sequential (s), parallel (p), or both (b)");
-          return;;
+          return;
         }
       }
       bits = str::parse::<u64>(&args[1]).expect(&format!("Bit length is not an unsigned number!\n{}", HELP));
@@ -93,7 +94,7 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
   let mut n: u64 = 1;
 
   // generate threads
-  for _ in 0..20 {
+  for _ in 0..8 {
     let s = sender.clone();
 
     thread::spawn(move || {
