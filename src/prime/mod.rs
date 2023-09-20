@@ -1,7 +1,6 @@
 use num::{BigUint, bigint::RandBigInt, Integer};
 use rand::rngs::ThreadRng;
 use num::Zero;
-use std::ops::{Add, Sub};
 
 use crate::primelist;
 
@@ -14,7 +13,6 @@ lazy_static!(
 pub static ZERO: u32 = 0;
 pub static ONE: u32 = 1;
 pub static TWO: u32 = 2;
-pub static THREE: u32 = 3;
 
 
 /// Calculates if provided number is probabilistically prime
@@ -25,10 +23,10 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
   let mut d: BigUint;
   let mut a: BigUint;
   let mut x: BigUint;
-  let mut cont: bool;
+  let mut cont: bool = false;
 
 
-  if *value > *BTHREE && !value.is_even() {
+  if value > &BTHREE && !value.is_even() {
     // check known prime cases
     for u in primelist::PRIMES {
       if (value % u).is_zero() {
@@ -41,11 +39,10 @@ pub fn miller_rabin(value: &BigUint, k: u64, rng: &mut ThreadRng) -> bool {
     loop {
       d /= TWO;
       r += ONE;
-      if !value.is_even() { break; }
+      if !d.is_even() { break; }
     }
 
     for _ in 0..k {
-      cont = false;
       loop {
         a = rng.gen_biguint(bits);
         if !(a < *BTWO || a > ((value) - TWO)) { break; }

@@ -98,12 +98,11 @@ fn threaded_gen_primes(k: u64, count: u64, bits: u64) {
     let s = sender.clone();
 
     thread::spawn(move || {
-      let mut value: BigUint;
       let mut r: ThreadRng = rand::thread_rng();
       loop {
-        value = r.gen_biguint(bits);  // TODO: handle error
+        let value = r.gen_biguint(bits);  // TODO: handle error
         if prime::miller_rabin(&value, k, &mut r) {
-          s.send(value.clone()).unwrap();  // TODO: handle error
+          s.send(value).unwrap();  // TODO: handle error
         }
       }
     });
